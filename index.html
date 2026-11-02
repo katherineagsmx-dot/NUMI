@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Numi · Matemáticas a tu ritmo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#7C5CFC; --primary-dark:#5B3FD9; --primary-soft:#EDE9FF;
+    --success:#58CC6A; --success-dark:#46A557; --success-soft:#E7F7EA;
+    --streak:#FF6B35; --gold:#FFC800; --gold-soft:#FFF6D9; --gold-dark:#A37C00;
+    --danger:#FF4B4B; --danger-soft:#FFE9E9; --danger-dark:#D63333;
+    --bg:#F6F6FB; --surface:#FFFFFF; --ink:#2B2B3A; --muted:#8A8A9C;
+    --border:#ECECF4; --border-strong:#D9D9E6;
+    --shadow:0 6px 20px rgba(40,30,80,.08); --radius:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input{font-family:inherit}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+
+  header{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:2px solid var(--border)}
+  .nav{display:flex;align-items:center;gap:14px;height:66px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:900;font-size:22px;color:var(--primary);margin-right:8px}
+  .logo .mark{width:38px;height:38px}
+  .nav-links{display:flex;gap:4px;margin-left:6px}
+  .nav-links button{display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:14px;font-weight:800;color:var(--muted);font-size:14px;transition:.15s}
+  .nav-links button:hover{background:var(--bg);color:var(--ink)}
+  .nav-links button.active{background:var(--primary-soft);color:var(--primary-dark)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+  .pill{display:flex;align-items:center;gap:6px;font-weight:900;font-size:15px}
+  .pill.fire{color:var(--streak)} .pill.xp{color:var(--gold)}
+  .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#A98BFF);display:grid;place-items:center;color:#fff;font-weight:900;font-size:16px;border:2px solid #fff;box-shadow:0 0 0 2px var(--primary-soft)}
+
+  main{padding:30px 0 70px}
+  .screen{display:none;animation:fade .3s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  h1.title{font-size:30px;font-weight:900;margin-bottom:4px}
+  .sub{color:var(--muted);font-weight:700;margin-bottom:22px}
+  .card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+  .section-hd{font-weight:900;font-size:17px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 22px;border-radius:16px;font-weight:900;font-size:15px;letter-spacing:.3px;text-transform:uppercase;transition:.1s;border-bottom:4px solid rgba(0,0,0,.18)}
+  .btn:active{transform:translateY(2px);border-bottom-width:2px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-success{background:var(--success);color:#fff}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-ghost{background:var(--surface);color:var(--muted);border:2px solid var(--border-strong);border-bottom-width:4px}
+  .btn-lg{padding:16px 30px;font-size:16px;width:100%}
+
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .stat{background:var(--surface);border:2px solid var(--border);border-radius:18px;padding:16px;text-align:center}
+  .stat .ic{font-size:26px}.stat .n{font-size:24px;font-weight:900;margin-top:4px}.stat .l{color:var(--muted);font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+
+  /* ====== RUTA: MAPA TIPO CUENTO ====== */
+  .unit-head{background:var(--primary);color:#fff;border-radius:18px;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;margin:0 0 18px;box-shadow:var(--shadow)}
+  .unit-head .l{font-weight:800;font-size:13px;text-transform:uppercase;opacity:.85;letter-spacing:.5px}
+  .unit-head h3{font-size:22px;font-weight:900}
+  .unit-head.locked{background:#C9C9D6;margin-top:26px}
+
+  .ruta-col{max-width:560px;margin:0 auto}
+  .map{position:relative;width:100%;margin:0 auto 10px;aspect-ratio:400/770;--bub:102px;--rbub:124px}
+  .map-bg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  @keyframes drift{0%,100%{transform:translateX(0)}50%{transform:translateX(16px)}}
+  @keyframes twinkle{0%,100%{opacity:.25;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+  @keyframes sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+  .cloud{animation:drift 9s ease-in-out infinite}
+  .cloud.b{animation-duration:13s;animation-delay:-3s}
+  .cloud.c{animation-duration:11s;animation-delay:-6s}
+  .star{animation:twinkle 2.6s ease-in-out infinite;transform-origin:center}
+  .star.b{animation-delay:-.8s}.star.c{animation-delay:-1.6s}.star.d{animation-delay:-2.1s}
+  .tree{animation:sway 5s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom center}
+  .tree.b{animation-duration:6.5s;animation-delay:-2s}
+  .tree.c{animation-duration:5.8s;animation-delay:-3.4s}
+  #road-progress{transition:stroke-dashoffset 1s ease}
+
+  .node{position:absolute;width:calc(var(--bub) + 76px);margin-left:calc((var(--bub) + 76px) / -2);margin-top:calc(var(--bub) / -2);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:2}
+  .node.node-reward{margin-top:calc(var(--rbub) / -2)}
+  .float{position:relative}
+  .node .bubble{width:var(--bub);height:var(--bub);border-radius:50%;display:grid;place-items:center;font-size:calc(var(--bub) * .43);border-bottom:7px solid rgba(0,0,0,.2);transition:transform .12s ease, box-shadow .2s}
+  .node.node-reward .bubble{width:var(--rbub);height:var(--rbub);font-size:calc(var(--rbub) * .44)}
+  .node:not(.locked) .bubble{cursor:pointer}
+  .node:not(.locked) .bubble:hover{transform:translateY(-5px) scale(1.06)}
+  .node .bubble:active{transform:translateY(3px) scale(.97)}
+  .node.done .bubble{background:var(--success);color:#fff}
+  .node.current .bubble{background:var(--gold);color:#fff;box-shadow:0 0 0 7px var(--gold-soft)}
+  .node.locked .bubble{background:#DDDDE8;color:#AFAFC0;border-bottom-color:#C7C7D6;cursor:not-allowed}
+  .node.ready .bubble{background:linear-gradient(145deg,#FFD84D,#FF9F1C);color:#fff;box-shadow:0 0 0 8px var(--gold-soft),0 0 26px rgba(255,160,28,.6)}
+  .node .lbl{font-weight:900;font-size:15px;color:var(--muted);text-align:center;text-shadow:0 1px 0 #fff,0 0 6px #fff}
+  .node.current .lbl,.node.ready .lbl{color:var(--primary-dark)}
+
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .node.current .float,.node.ready .float{animation:floaty 2.2s ease-in-out infinite}
+  @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.2) rotate(-5deg)}65%{transform:scale(.93) rotate(2deg)}100%{transform:scale(1)}}
+  .bubble.pop{animation:pop .42s ease}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+  .bubble.shake{animation:shake .4s ease}
+  .ripple{position:absolute;left:50%;top:calc(var(--bub) / 2);width:var(--bub);height:var(--bub);margin:calc(var(--bub) / -2) 0 0 calc(var(--bub) / -2);border-radius:50%;border:4px solid var(--primary);opacity:0;pointer-events:none}
+  .node.node-reward .ripple{top:calc(var(--rbub) / 2);width:var(--rbub);height:var(--rbub);margin:calc(var(--rbub) / -2) 0 0 calc(var(--rbub) / -2)}
+  .node.ready .ripple,.node.current .ripple{border-color:var(--gold)}
+  .ripple.go{animation:rip .62s ease-out}
+  @keyframes rip{0%{transform:scale(.55);opacity:.95}100%{transform:scale(2.4);opacity:0}}
+  @keyframes bounceTag{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-6px)}}
+  .tag{position:absolute;top:-26px;left:50%;background:#fff;border:2px solid var(--gold);color:var(--gold-dark);font-weight:900;font-size:11px;padding:4px 12px;border-radius:99px;white-space:nowrap;animation:bounceTag 1.2s ease-in-out infinite;box-shadow:0 3px 8px rgba(0,0,0,.08);z-index:3}
+  .tag.r{border-color:var(--primary);color:var(--primary-dark)}
+
+  .roadmap{display:flex;flex-wrap:wrap;gap:8px}
+  .roadmap span{background:var(--bg);border:2px solid var(--border);border-radius:99px;padding:7px 14px;font-weight:800;font-size:13px;color:var(--muted)}
+
+  /* confeti y aviso */
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:100;overflow:hidden}
+  .confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(760deg);opacity:.15}}
+  .toast{position:fixed;left:50%;bottom:28px;background:var(--ink);color:#fff;padding:14px 24px;border-radius:16px;font-weight:900;z-index:101;opacity:0;transform:translateX(-50%) translateY(18px);transition:.3s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* TUTORIAL */
+  .tut{max-width:620px;margin:0 auto}
+  .tut-head{display:flex;gap:16px;align-items:center;margin-bottom:22px}
+  .tut-icon{width:70px;height:70px;border-radius:20px;background:var(--primary-soft);display:grid;place-items:center;font-size:34px;flex-shrink:0}
+  .tut-k{color:var(--muted);font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  .tut-head h1{font-size:28px;font-weight:900}
+  .tut-intro{font-size:18px;font-weight:700;margin-bottom:20px}
+  .tut-ex{background:var(--gold-soft);border:2px solid var(--gold);border-radius:14px;padding:16px;text-align:center;font-size:27px;font-weight:900;color:var(--gold-dark);margin-bottom:20px}
+  .tut-steps{list-style:none;counter-reset:s;margin-bottom:18px}
+  .tut-steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;padding:9px 0;font-weight:700}
+  .tut-steps li::before{content:counter(s);flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:900;font-size:14px}
+  .tut-res{background:var(--success-soft);border:2px solid var(--success);border-radius:14px;padding:14px;text-align:center;font-size:23px;font-weight:900;color:var(--success-dark);margin-bottom:18px}
+  .tut-tip{background:var(--primary-soft);border-radius:14px;padding:14px 16px;font-weight:700;color:var(--primary-dark);display:flex;gap:10px;align-items:flex-start}
+  .tut-actions{display:flex;gap:12px;margin-top:20px}
+
+  /* LECCIÓN */
+  .lesson-top{display:flex;align-items:center;gap:16px;margin-bottom:40px}
+  .lesson-top .x{font-size:24px;color:var(--muted);font-weight:900}
+  .lesson-top .book{font-size:20px}
+  .ltrack{flex:1;height:16px;border-radius:99px;background:var(--border)}
+  .ltrack i{display:block;height:100%;width:0;background:var(--success);border-radius:99px;transition:.3s}
+  .lesson-top .hearts{color:var(--danger);font-weight:900;font-size:17px;white-space:nowrap}
+  .q-wrap{max-width:600px;margin:0 auto}
+  .q-wrap .k{color:var(--muted);font-weight:900;text-transform:uppercase;letter-spacing:.6px;font-size:13px;margin-bottom:12px}
+  .q-wrap h2{font-size:40px;font-weight:900;margin-bottom:30px}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px}
+  .opt{background:var(--surface);border:2px solid var(--border-strong);border-bottom-width:4px;border-radius:16px;padding:22px;font-size:22px;font-weight:900;text-align:center;transition:.1s}
+  .opt:hover:not(:disabled){background:var(--bg);transform:translateY(-2px)}
+  .opt.sel{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-dark)}
+  .opt.correct{border-color:var(--success);background:var(--success-soft);color:var(--success-dark)}
+  .opt.wrong{border-color:var(--danger);background:var(--danger-soft);color:var(--danger-dark)}
+  .opt:disabled{cursor:default}
+  .typebox{width:100%;padding:20px;font-size:24px;font-weight:900;text-align:center;border:2px solid var(--border-strong);border-bottom-width:4px;border-radius:16px;margin-bottom:26px;outline:none}
+  .typebox:focus{border-color:var(--primary)}
+
+  .footbar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:2px solid var(--border);padding:16px 0;display:none}
+  .footbar.show{display:block}
+  .footbar .inner{max-width:600px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:16px}
+  .footbar.ok{background:var(--success-soft);border-top-color:#BEEBC6}
+  .footbar.bad{background:var(--danger-soft);border-top-color:#F8C6C6}
+  .fb-msg{font-weight:900;font-size:18px}
+  .fb-exp{font-weight:700;font-size:14px;opacity:.9;margin-top:2px}
+  .footbar.ok .fb-msg,.footbar.ok .fb-exp{color:var(--success-dark)}
+  .footbar.bad .fb-msg,.footbar.bad .fb-exp{color:var(--danger-dark)}
+
+  /* RESULTADO */
+  .result{text-align:center;max-width:460px;margin:30px auto}
+  .result .big{font-size:72px;margin-bottom:10px}
+  .result h1{font-size:30px;font-weight:900;margin-bottom:28px}
+  .res-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+  .res-box{border:2px solid var(--gold);background:var(--gold-soft);border-radius:16px;padding:16px}
+  .res-box.acc{border-color:var(--primary);background:var(--primary-soft)}
+  .res-box .l{font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .res-box .n{font-size:28px;font-weight:900}
+
+  /* LOGROS */
+  .ach{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .ach .a{background:var(--surface);border:2px solid var(--border);border-radius:18px;padding:18px;text-align:center}
+  .ach .a .b{width:56px;height:56px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;font-size:28px;background:var(--gold-soft)}
+  .ach .a.lock .b{filter:grayscale(1);opacity:.4;background:var(--bg)}
+  .ach .a h5{font-weight:900;font-size:14px}.ach .a p{color:var(--muted);font-weight:700;font-size:12px}
+
+  .pf{display:flex;gap:22px;align-items:center;margin-bottom:24px}
+  .pf .big{width:104px;height:104px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#A98BFF);display:grid;place-items:center;color:#fff;font-weight:900;font-size:40px}
+  .pf h2{font-size:26px;font-weight:900}.pf .h{color:var(--muted);font-weight:700}
+
+  @media(max-width:860px){
+    .stat-row{grid-template-columns:1fr 1fr}.nav-links{display:none}
+    .opts{grid-template-columns:1fr}.q-wrap h2{font-size:32px}
+  }
+  @media(max-width:560px){
+    .map{--bub:72px;--rbub:90px}
+    .node .lbl{font-size:13px}
+    .unit-head h3{font-size:19px}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">
+      <svg class="mark" viewBox="0 0 48 48" fill="none">
+        <rect x="4" y="4" width="40" height="40" rx="13" fill="#7C5CFC"/>
+        <circle cx="18" cy="19" r="4" fill="#fff"/><circle cx="30" cy="19" r="4" fill="#fff"/>
+        <circle cx="18" cy="19" r="1.8" fill="#2B2B3A"/><circle cx="30" cy="19" r="1.8" fill="#2B2B3A"/>
+        <path d="M17 29c2.5 3 11.5 3 14 0" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      Numi
+    </div>
+    <nav class="nav-links" id="navlinks">
+      <button class="active" data-go="ruta">🗺️ Ruta</button>
+      <button data-go="progreso">📊 Progreso</button>
+      <button data-go="perfil">👤 Perfil</button>
+    </nav>
+    <div class="nav-right">
+      <span class="pill fire">🔥 <span id="hdr-streak">0</span></span>
+      <span class="pill xp">⭐ <span id="hdr-xp">0</span></span>
+      <div class="avatar">K</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- RUTA -->
+  <section class="screen active" id="ruta">
+    <div class="ruta-col">
+    <h1 class="title" style="margin-bottom:20px">Tu ruta de aprendizaje 🗺️</h1>
+
+    <div class="unit-head">
+      <div><div class="l">Unidad 1</div><h3>Operaciones básicas</h3></div>
+      <div id="u1-badge" style="font-weight:900">0/5</div>
+    </div>
+
+    <div class="map" id="u1-map">
+      <svg class="map-bg" viewBox="0 0 400 770" fill="none">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#F0EBFF"/><stop offset="0.55" stop-color="#EAF3FF"/><stop offset="1" stop-color="#E6F7EA"/>
+          </linearGradient>
+          <linearGradient id="chestGlow" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#FFE9A8" stop-opacity=".9"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="400" height="770" rx="26" fill="url(#sky)"/>
+
+        <!-- colinas -->
+        <path d="M0 640c60-34 120 10 190-14 70-24 140 8 210-16v160H0z" fill="#CFEBD6" opacity=".75"/>
+        <path d="M0 696c70-26 130 16 200-6 70-22 130 10 200-10v90H0z" fill="#BBE3C6" opacity=".8"/>
+
+        <!-- brillo del cofre -->
+        <ellipse cx="200" cy="676" rx="94" ry="64" fill="url(#chestGlow)"/>
+
+        <!-- nubes -->
+        <g class="cloud" opacity=".92"><ellipse cx="312" cy="78" rx="30" ry="17" fill="#fff"/><ellipse cx="334" cy="84" rx="21" ry="13" fill="#fff"/><ellipse cx="292" cy="88" rx="22" ry="12" fill="#fff"/></g>
+        <g class="cloud b" opacity=".85"><ellipse cx="74" cy="330" rx="27" ry="15" fill="#fff"/><ellipse cx="95" cy="336" rx="18" ry="11" fill="#fff"/><ellipse cx="56" cy="338" rx="18" ry="10" fill="#fff"/></g>
+        <g class="cloud c" opacity=".8"><ellipse cx="330" cy="470" rx="25" ry="14" fill="#fff"/><ellipse cx="350" cy="476" rx="17" ry="10" fill="#fff"/><ellipse cx="312" cy="477" rx="16" ry="9" fill="#fff"/></g>
+        <g class="cloud" opacity=".75"><ellipse cx="66" cy="120" rx="22" ry="12" fill="#fff"/><ellipse cx="84" cy="125" rx="15" ry="9" fill="#fff"/></g>
+
+        <!-- arbolitos -->
+        <g class="tree"><rect x="41" y="268" width="7" height="16" rx="3" fill="#B08968"/><path d="M44.5 232l17 30h-34z" fill="#7FCF95"/><path d="M44.5 248l14 24h-28z" fill="#5FBE7C"/></g>
+        <g class="tree b"><rect x="352" y="412" width="7" height="16" rx="3" fill="#B08968"/><path d="M355.5 376l17 30h-34z" fill="#7FCF95"/><path d="M355.5 392l14 24h-28z" fill="#5FBE7C"/></g>
+        <g class="tree c"><rect x="38" y="528" width="6" height="14" rx="3" fill="#B08968"/><path d="M41 498l15 26h-30z" fill="#8AD6A0"/><path d="M41 512l12 20h-24z" fill="#5FBE7C"/></g>
+        <g class="tree"><rect x="356" y="196" width="6" height="14" rx="3" fill="#B08968"/><path d="M359 166l15 26h-30z" fill="#8AD6A0"/><path d="M359 180l12 20h-24z" fill="#5FBE7C"/></g>
+        <g class="tree b"><rect x="44" y="640" width="6" height="14" rx="3" fill="#B08968"/><path d="M47 612l14 24h-28z" fill="#7FCF95"/></g>
+
+        <!-- estrellitas -->
+        <g fill="#FFC800">
+          <path class="star"   d="M120 112l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+          <path class="star b" d="M268 232l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z"/>
+          <path class="star c" d="M150 392l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+          <path class="star d" d="M246 492l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z"/>
+          <path class="star b" d="M108 596l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z"/>
+          <path class="star c" d="M300 140l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z"/>
+        </g>
+
+        <!-- camino -->
+        <path id="road-shadow" stroke="#D3D3E2" stroke-width="26" stroke-linecap="round" opacity=".55"/>
+        <path id="road-base"   stroke="#FFFFFF" stroke-width="20" stroke-linecap="round"/>
+        <path id="road-dash"   stroke="#D9D9E6" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 12"/>
+        <path id="road-progress" stroke="#58CC6A" stroke-width="20" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="card" style="margin:0 auto 10px;text-align:center">
+      <p style="font-weight:800;color:var(--muted);font-size:15px" id="map-hint">Toca la parada dorada para empezar.</p>
+    </div>
+
+    <div class="unit-head locked">
+      <div><div class="l">Unidad 2 · Bloqueada</div><h3>Fracciones y decimales</h3></div>
+      <div>🔒</div>
+    </div>
+    <div class="unit-head locked" style="margin-top:0">
+      <div><div class="l">Unidad 3 · Bloqueada</div><h3>Porcentajes y proporciones</h3></div>
+      <div>🔒</div>
+    </div>
+
+    <div class="card">
+      <h4 class="section-hd">Lo que viene después</h4>
+      <div class="roadmap">
+        <span>4 · Números enteros</span>
+        <span>5 · Potencias y raíces</span>
+        <span>6 · Álgebra</span>
+        <span>7 · Estadística</span>
+        <span>8 · Cálculo</span>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- TUTORIAL -->
+  <section class="screen" id="tutorial">
+    <div class="tut">
+      <div class="tut-head">
+        <div class="tut-icon" id="tut-icon">➕</div>
+        <div>
+          <div class="tut-k">Unidad 1 · Aprende primero</div>
+          <h1 id="tut-title">Suma</h1>
+        </div>
+      </div>
+      <div class="card">
+        <p class="tut-intro" id="tut-intro"></p>
+        <div class="tut-ex" id="tut-ex"></div>
+        <ol class="tut-steps" id="tut-steps"></ol>
+        <div class="tut-res" id="tut-res"></div>
+        <div class="tut-tip"><span>💡</span><span id="tut-tip"></span></div>
+      </div>
+      <div class="tut-actions">
+        <button class="btn btn-ghost" onclick="go('ruta')">Volver</button>
+        <button class="btn btn-success" style="flex:1" onclick="beginExercises()">¡Entendido, a practicar!</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LECCIÓN -->
+  <section class="screen" id="leccion">
+    <div class="lesson-top">
+      <button class="x" onclick="go('ruta')">✕</button>
+      <button class="book" onclick="reviewTutorial()" title="Repasar la explicación">📖</button>
+      <div class="ltrack"><i id="lprog"></i></div>
+      <span class="hearts" id="lhearts">❤️❤️❤️❤️❤️</span>
+    </div>
+    <div class="q-wrap">
+      <div class="k" id="q-kind">Resuelve</div>
+      <h2 id="q-prompt">7 + 5</h2>
+      <div id="q-answer"></div>
+    </div>
+  </section>
+
+  <!-- RESULTADO -->
+  <section class="screen" id="resultado">
+    <div class="result">
+      <div class="big" id="r-emoji">🎉</div>
+      <h1 id="r-title">¡Lección completada!</h1>
+      <div class="res-row">
+        <div class="res-box"><div class="l">⭐ XP ganado</div><div class="n" id="r-xp">0</div></div>
+        <div class="res-box acc"><div class="l">🎯 Precisión</div><div class="n" id="r-acc">0%</div></div>
+      </div>
+      <button class="btn btn-success btn-lg" onclick="go('ruta')">Volver a la ruta</button>
+    </div>
+  </section>
+
+  <!-- PROGRESO -->
+  <section class="screen" id="progreso">
+    <h1 class="title">Tu progreso 📊</h1>
+    <p class="sub">Tus números reales, actualizados al instante.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="ic">🔥</div><div class="n" id="st-streak">0</div><div class="l">Racha</div></div>
+      <div class="stat"><div class="ic">⭐</div><div class="n" id="st-xp">0</div><div class="l">XP total</div></div>
+      <div class="stat"><div class="ic">✅</div><div class="n" id="st-lessons">0</div><div class="l">Lecciones</div></div>
+      <div class="stat"><div class="ic">🎯</div><div class="n" id="st-acc">—</div><div class="l">Precisión</div></div>
+    </div>
+    <div class="card">
+      <h4 class="section-hd">🏅 Logros</h4>
+      <div class="ach" id="ach-grid"></div>
+    </div>
+  </section>
+
+  <!-- PERFIL -->
+  <section class="screen" id="perfil">
+    <h1 class="title">Perfil 👤</h1>
+    <p class="sub">Tu cuenta.</p>
+    <div class="card">
+      <div class="pf">
+        <div class="big">K</div>
+        <div><h2>Katherine</h2><p class="h">Aprendiendo matemáticas con Numi</p></div>
+      </div>
+      <div class="stat-row" style="margin-bottom:16px">
+        <div class="stat"><div class="ic">🔥</div><div class="n" id="pf-streak">0</div><div class="l">Racha</div></div>
+        <div class="stat"><div class="ic">⭐</div><div class="n" id="pf-xp">0</div><div class="l">XP</div></div>
+        <div class="stat"><div class="ic">✅</div><div class="n" id="pf-lessons">0</div><div class="l">Lecciones</div></div>
+        <div class="stat"><div class="ic">🎯</div><div class="n" id="pf-acc">—</div><div class="l">Precisión</div></div>
+      </div>
+      <button class="btn btn-ghost btn-lg" onclick="resetProgress()">Reiniciar progreso</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="footbar" id="footbar">
+  <div class="inner">
+    <div style="flex:1">
+      <div class="fb-msg" id="fb-msg"></div>
+      <div class="fb-exp" id="fb-exp"></div>
+    </div>
+    <button class="btn btn-success" id="fb-btn">Comprobar</button>
+  </div>
+</div>
+
+<div class="confetti" id="confetti"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ ESTADO Y PERSISTENCIA ============ */
+const KEY='numi_progreso_v1';
+const DEFAULT={xp:0,streak:0,lastDay:null,done:{},totalAns:0,totalOk:0,perfectCount:0,rewards:{}};
+let state=load();
+function load(){
+  try{const raw=localStorage.getItem(KEY);if(raw)return Object.assign({},DEFAULT,JSON.parse(raw));}catch(e){}
+  return Object.assign({},DEFAULT,{done:{},rewards:{}});
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+
+/* ============ CONTENIDO: TUTORIALES ============ */
+const TUTS={
+  suma:{
+    icon:'➕', title:'Suma',
+    intro:'Sumar es juntar dos cantidades para saber cuánto hay en total. El signo + significa "y también".',
+    ex:'27 + 15',
+    steps:[
+      'Separa cada número en decenas y unidades: 27 es 20 + 7, y 15 es 10 + 5.',
+      'Suma primero las decenas: 20 + 10 = 30.',
+      'Suma después las unidades: 7 + 5 = 12.',
+      'Junta los dos resultados: 30 + 12 = 42.'
+    ],
+    res:'27 + 15 = 42',
+    tip:'Truco: completa a la decena. De 27 a 30 faltan 3; quítale esos 3 al 15 y te queda 30 + 12 = 42. Mucho más rápido de hacer en la cabeza.'
+  },
+  resta:{
+    icon:'➖', title:'Resta',
+    intro:'Restar es quitar una cantidad a otra, o ver qué tan lejos está un número de otro. Ese "qué tan lejos" se llama diferencia.',
+    ex:'32 − 18',
+    steps:[
+      'En lugar de quitar, pregúntate: ¿cuánto le falta al 18 para llegar al 32?',
+      'De 18 a 20 faltan 2.',
+      'De 20 a 32 faltan 12.',
+      'Suma lo que fuiste avanzando: 2 + 12 = 14.'
+    ],
+    res:'32 − 18 = 14',
+    tip:'Siempre puedes comprobar una resta sumando: si 32 − 18 = 14, entonces 18 + 14 debe dar 32. ✔️'
+  },
+  multi:{
+    icon:'✖️', title:'Multiplicación',
+    intro:'Multiplicar es una suma repetida: es sumar el mismo número varias veces, pero de forma corta.',
+    ex:'7 × 4',
+    steps:[
+      '7 × 4 quiere decir "4 grupos de 7".',
+      'Es lo mismo que sumar 7 + 7 + 7 + 7.',
+      'Vas acumulando: 7, 14, 21, 28.',
+      'Llegaste a 28, así que ese es el resultado.'
+    ],
+    res:'7 × 4 = 28',
+    tip:'El orden no cambia el resultado: 7 × 4 es igual que 4 × 7. Y hay atajos: ×10 solo agrega un cero, y ×5 es la mitad de ×10.'
+  },
+  divi:{
+    icon:'➗', title:'División',
+    intro:'Dividir es repartir una cantidad en partes iguales, o ver cuántas veces cabe un número dentro de otro.',
+    ex:'56 ÷ 7',
+    steps:[
+      'Pregúntate: ¿cuántas veces cabe el 7 dentro del 56?',
+      'Usa las tablas al revés: busca un número que multiplicado por 7 dé 56.',
+      '7 × 7 = 49, todavía falta. 7 × 8 = 56. ¡Ese es!',
+      'Como 7 × 8 = 56, entonces 56 ÷ 7 = 8.'
+    ],
+    res:'56 ÷ 7 = 8',
+    tip:'La división es la operación inversa de la multiplicación. Por eso siempre puedes comprobar tu resultado multiplicando de regreso.'
+  },
+  repaso:{
+    icon:'🏆', title:'Repaso de la unidad',
+    intro:'Aquí se mezclan las cuatro operaciones. Antes de empezar, recuerda la idea central de cada una:',
+    ex:'+   −   ×   ÷',
+    steps:[
+      'Suma: juntar cantidades. Separa en decenas y unidades, o completa a la decena.',
+      'Resta: la distancia entre dos números. Avanza del menor al mayor y suma los saltos.',
+      'Multiplicación: suma repetida. "7 × 4" es 4 grupos de 7.',
+      'División: repartir en partes iguales. Usa las tablas al revés.'
+    ],
+    res:'Suma ↔ Resta     Multiplicación ↔ División',
+    tip:'Cada operación tiene su inversa: la resta comprueba la suma y la multiplicación comprueba la división. Úsalas para revisar tus respuestas.'
+  }
+};
+
+/* ============ CONTENIDO: EJERCICIOS ============ */
+const r=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const shuffle=a=>a.sort(()=>Math.random()-.5);
+function makeQ(prompt,answer,explain){
+  const asInput=Math.random()<.4;
+  if(asInput)return {prompt,answer,explain,type:'input'};
+  const opts=new Set([answer]);
+  while(opts.size<4){const d=answer+r(-6,6);if(d>=0)opts.add(d);}
+  return {prompt,answer,explain,type:'choice',options:shuffle([...opts])};
+}
+const G={
+  suma:()=>{const a=r(2,25),b=r(2,25);return makeQ(`${a} + ${b}`,a+b,`Junta las dos cantidades: ${a} + ${b} = ${a+b}.`);},
+  resta:()=>{const a=r(10,30),b=r(1,a-1);return makeQ(`${a} − ${b}`,a-b,`${a} − ${b} = ${a-b}, porque ${b} + ${a-b} = ${a}.`);},
+  multi:()=>{const a=r(2,12),b=r(2,12);return makeQ(`${a} × ${b}`,a*b,`${a} × ${b} es sumar ${a} un total de ${b} veces = ${a*b}.`);},
+  divi:()=>{const b=r(2,10),c=r(2,10);return makeQ(`${b*c} ÷ ${b}`,c,`${b*c} ÷ ${b} = ${c}, porque ${b} × ${c} = ${b*c}.`);},
+};
+function genLesson(fn,n=6){const q=[];for(let i=0;i<n;i++)q.push(fn());return q;}
+const LESSONS=[
+  {id:'suma',  icon:'➕', label:'Suma',           gen:()=>genLesson(G.suma)},
+  {id:'resta', icon:'➖', label:'Resta',          gen:()=>genLesson(G.resta)},
+  {id:'multi', icon:'✖️', label:'Multiplicación', gen:()=>genLesson(G.multi)},
+  {id:'divi',  icon:'➗', label:'División',        gen:()=>genLesson(G.divi)},
+  {id:'repaso',icon:'🏆', label:'Repaso',         gen:()=>{const f=[G.suma,G.resta,G.multi,G.divi];const q=[];for(let i=0;i<8;i++)q.push(f[r(0,3)]());return q;}},
+];
+
+/* ============ MAPA: COORDENADAS Y CAMINO ============ */
+const MAP_W=400, MAP_H=770;
+const MAP=[{x:200,y:88},{x:108,y:206},{x:292,y:324},{x:110,y:442},{x:290,y:558},{x:200,y:676}];
+function roadPath(){
+  let d=`M ${MAP[0].x} ${MAP[0].y}`;
+  for(let i=1;i<MAP.length;i++){
+    const p=MAP[i-1],c=MAP[i];
+    d+=` C ${p.x} ${p.y+72}, ${c.x} ${c.y-72}, ${c.x} ${c.y}`;
+  }
+  return d;
+}
+function initRoad(){
+  const d=roadPath();
+  ['road-shadow','road-base','road-dash','road-progress'].forEach(id=>document.getElementById(id).setAttribute('d',d));
+}
+
+/* ============ NAVEGACIÓN ============ */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
+  document.querySelectorAll('#navlinks button').forEach(b=>b.classList.toggle('active',b.dataset.go===id));
+  document.getElementById('footbar').classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='progreso')renderProgreso();
+  if(id==='perfil')renderPerfil();
+  if(id==='ruta')renderRuta();
+}
+document.querySelectorAll('#navlinks [data-go]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.go)));
+
+/* ============ RUTA ============ */
+function isUnlocked(i){return i===0||!!state.done[LESSONS[i-1].id];}
+function unitDone(){return LESSONS.every(l=>state.done[l.id]);}
+
+function renderRuta(){
+  const map=document.getElementById('u1-map');
+  map.querySelectorAll('.node').forEach(n=>n.remove());
+  let completed=0;
+
+  LESSONS.forEach((L,i)=>{
+    const done=!!state.done[L.id], unlocked=isUnlocked(i);
+    if(done)completed++;
+    const cls=done?'done':(unlocked?'current':'locked');
+    const node=document.createElement('div');
+    node.className='node '+cls;
+    node.style.left=(MAP[i].x/MAP_W*100)+'%';
+    node.style.top=(MAP[i].y/MAP_H*100)+'%';
+    const tag=(cls==='current')?'<span class="tag">EMPIEZA</span>':'';
+    const face=done?'✓':(unlocked?L.icon:'🔒');
+    const onclk=unlocked?`tapLesson(this,'${L.id}')`:'tapLocked(this)';
+    node.innerHTML=`<div class="float">${tag}<button class="bubble" onclick="${onclk}">${face}</button><span class="ripple"></span></div><div class="lbl">${L.label}</div>`;
+    map.appendChild(node);
+  });
+
+  // ---- parada final: la recompensa ----
+  const ready=unitDone(), claimed=!!(state.rewards&&state.rewards.u1);
+  const rn=document.createElement('div');
+  rn.className='node node-reward '+(claimed?'done':(ready?'ready':'locked'));
+  rn.style.left=(MAP[5].x/MAP_W*100)+'%';
+  rn.style.top=(MAP[5].y/MAP_H*100)+'%';
+  const rface=claimed?'🏅':(ready?'🎁':'🔒');
+  const rtag=ready&&!claimed?'<span class="tag r">¡ÁBRELO!</span>':'';
+  const rclk=ready&&!claimed?'tapReward(this)':(claimed?'tapClaimed(this)':'tapLocked(this)');
+  rn.innerHTML=`<div class="float">${rtag}<button class="bubble" onclick="${rclk}">${rface}</button><span class="ripple"></span></div><div class="lbl">${claimed?'Recompensa obtenida':(ready?'¡Recompensa!':'Recompensa')}</div>`;
+  map.appendChild(rn);
+
+  // ---- avance del camino ----
+  const prog=document.getElementById('road-progress');
+  try{
+    const len=prog.getTotalLength();
+    prog.style.strokeDasharray=len;
+    prog.style.strokeDashoffset=len*(1-completed/LESSONS.length);
+  }catch(e){}
+
+  document.getElementById('u1-badge').textContent=completed+'/5';
+  const hint=document.getElementById('map-hint');
+  hint.textContent = claimed ? '¡Unidad 1 terminada! Pronto se abrirá la Unidad 2. 🎉'
+    : ready ? '¡Llegaste al final del camino! Abre tu recompensa. 🎁'
+    : completed===0 ? 'Toca la parada dorada para empezar.'
+    : `Vas ${completed} de 5 paradas. Sigue el camino. ✨`;
+  refreshHeader();
+}
+
+/* ---- interacción de las burbujas ---- */
+function animate(btn,cls){btn.classList.remove(cls);void btn.offsetWidth;btn.classList.add(cls);}
+function ripple(btn){const rp=btn.parentElement.querySelector('.ripple');if(rp){rp.classList.remove('go');void rp.offsetWidth;rp.classList.add('go');}}
+function tapLesson(btn,id){animate(btn,'pop');ripple(btn);setTimeout(()=>startLesson(id),200);}
+function tapLocked(btn){animate(btn,'shake');toast('🔒 Termina la parada anterior para abrir esta.');}
+function tapClaimed(btn){animate(btn,'pop');ripple(btn);toast('🏅 Ya reclamaste esta recompensa.');}
+function tapReward(btn){
+  animate(btn,'pop');ripple(btn);
+  state.rewards=Object.assign({},state.rewards,{u1:true});
+  state.xp+=100;save();
+  confetti();toast('🎁 ¡Recompensa de la Unidad 1! +100 XP');
+  setTimeout(()=>{renderRuta();},700);
+}
+
+/* ---- confeti y aviso ---- */
+function confetti(){
+  const box=document.getElementById('confetti');
+  const colors=['#7C5CFC','#58CC6A','#FFC800','#FF6B35','#FF4B4B','#4BC0FF'];
+  for(let i=0;i<60;i++){
+    const p=document.createElement('i');
+    p.style.left=Math.random()*100+'%';
+    p.style.background=colors[i%colors.length];
+    p.style.animationDuration=(1.6+Math.random()*1.4)+'s';
+    p.style.animationDelay=(Math.random()*.5)+'s';
+    box.appendChild(p);
+    setTimeout(()=>p.remove(),3600);
+  }
+}
+let toastT=null;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ============ TUTORIAL ============ */
+let pendingLesson=null;
+function startLesson(id){pendingLesson=id;renderTutorial(id);go('tutorial');}
+function reviewTutorial(){if(pendingLesson){renderTutorial(pendingLesson);go('tutorial');}}
+function renderTutorial(id){
+  const T=TUTS[id];
+  document.getElementById('tut-icon').textContent=T.icon;
+  document.getElementById('tut-title').textContent=T.title;
+  document.getElementById('tut-intro').textContent=T.intro;
+  document.getElementById('tut-ex').textContent=T.ex;
+  document.getElementById('tut-steps').innerHTML=T.steps.map(s=>`<li><span>${s}</span></li>`).join('');
+  document.getElementById('tut-res').textContent=T.res;
+  document.getElementById('tut-tip').textContent=T.tip;
+}
+
+/* ============ MOTOR DE LECCIÓN ============ */
+let L=null;
+function beginExercises(){
+  const def=LESSONS.find(x=>x.id===pendingLesson);
+  if(!def)return go('ruta');
+  L={id:def.id,questions:def.gen(),i:0,lives:5,ok:0,answered:false,selected:null};
+  go('leccion');renderQuestion();
+}
+function renderQuestion(){
+  const q=L.questions[L.i];
+  L.answered=false;L.selected=null;
+  document.getElementById('lprog').style.width=(L.i/L.questions.length*100)+'%';
+  document.getElementById('lhearts').textContent='❤️'.repeat(L.lives)+'🤍'.repeat(5-L.lives);
+  document.getElementById('q-kind').textContent=q.type==='input'?'Escribe la respuesta':'Elige la respuesta correcta';
+  document.getElementById('q-prompt').textContent=q.prompt+' = ?';
+  const box=document.getElementById('q-answer');box.innerHTML='';
+  if(q.type==='choice'){
+    const grid=document.createElement('div');grid.className='opts';
+    q.options.forEach(o=>{
+      const b=document.createElement('button');b.className='opt';b.textContent=o;
+      b.onclick=()=>{if(L.answered)return;document.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');L.selected=o;setBtn(true);};
+      grid.appendChild(b);
+    });
+    box.appendChild(grid);
+  }else{
+    const inp=document.createElement('input');
+    inp.className='typebox';inp.type='number';inp.placeholder='Tu respuesta';inp.id='typein';inp.inputMode='numeric';
+    inp.oninput=()=>{L.selected=inp.value;setBtn(inp.value!=='');};
+    inp.onkeydown=e=>{if(e.key==='Enter'&&!L.answered&&inp.value!=='')check();};
+    box.appendChild(inp);setTimeout(()=>inp.focus(),50);
+  }
+  const fb=document.getElementById('footbar');fb.className='footbar';
+  document.getElementById('fb-msg').textContent='';
+  document.getElementById('fb-exp').textContent='';
+  const btn=document.getElementById('fb-btn');
+  btn.textContent='Comprobar';btn.className='btn btn-success';btn.disabled=true;btn.onclick=check;
+  setTimeout(()=>fb.classList.add('show'),30);
+}
+function setBtn(on){document.getElementById('fb-btn').disabled=!on;}
+function check(){
+  if(L.answered||L.selected===null||L.selected==='')return;
+  L.answered=true;
+  const q=L.questions[L.i];
+  const correct=Number(L.selected)===q.answer;
+  state.totalAns++;if(correct){state.totalOk++;L.ok++;}
+  save();
+  if(q.type==='choice'){
+    document.querySelectorAll('.opt').forEach(b=>{
+      b.disabled=true;
+      if(Number(b.textContent)===q.answer)b.classList.add('correct');
+      else if(Number(b.textContent)===Number(L.selected))b.classList.add('wrong');
+    });
+  }else{
+    const inp=document.getElementById('typein');
+    inp.disabled=true;inp.style.borderColor=correct?'var(--success)':'var(--danger)';
+  }
+  if(!correct)L.lives--;
+  document.getElementById('lhearts').textContent='❤️'.repeat(Math.max(0,L.lives))+'🤍'.repeat(5-Math.max(0,L.lives));
+  const fb=document.getElementById('footbar');
+  fb.className='footbar show '+(correct?'ok':'bad');
+  document.getElementById('fb-msg').textContent=correct?'¡Correcto! 🎉':`La respuesta es ${q.answer}`;
+  document.getElementById('fb-exp').textContent=correct?'':q.explain;
+  const btn=document.getElementById('fb-btn');
+  btn.disabled=false;btn.className='btn '+(correct?'btn-success':'btn-danger');
+  if(L.lives<=0){btn.textContent='Terminar';btn.onclick=failLesson;}
+  else{btn.textContent=(L.i+1>=L.questions.length)?'Finalizar':'Continuar';btn.onclick=next;}
+}
+function next(){L.i++;if(L.i>=L.questions.length)finishLesson();else renderQuestion();}
+function finishLesson(){
+  const total=L.questions.length,perfect=L.ok===total;
+  const xp=L.ok*10+(perfect?20:0);
+  state.xp+=xp;state.done[L.id]=true;
+  if(perfect)state.perfectCount++;
+  bumpStreak();save();
+  if(perfect)confetti();
+  showResult(perfect?'🏆':'🎉',perfect?'¡Perfecto!':'¡Lección completada!',xp,Math.round(L.ok/total*100));
+}
+function failLesson(){
+  bumpStreak();save();
+  showResult('💪','¡Casi! Vuelve a intentarlo',L.ok*10,Math.round(L.ok/L.questions.length*100));
+}
+function showResult(emoji,title,xp,acc){
+  document.getElementById('r-emoji').textContent=emoji;
+  document.getElementById('r-title').textContent=title;
+  document.getElementById('r-xp').textContent='+'+xp;
+  document.getElementById('r-acc').textContent=acc+'%';
+  go('resultado');refreshHeader();
+}
+function bumpStreak(){
+  const today=new Date().toDateString();
+  if(state.lastDay===today)return;
+  const yest=new Date(Date.now()-864e5).toDateString();
+  state.streak=(state.lastDay===yest)?state.streak+1:1;
+  state.lastDay=today;
+}
+
+/* ============ PROGRESO / PERFIL ============ */
+function acc(){return state.totalAns?Math.round(state.totalOk/state.totalAns*100)+'%':'—';}
+function lessonsDone(){return Object.keys(state.done).length;}
+function refreshHeader(){
+  document.getElementById('hdr-streak').textContent=state.streak;
+  document.getElementById('hdr-xp').textContent=state.xp.toLocaleString();
+}
+function renderProgreso(){
+  document.getElementById('st-streak').textContent=state.streak;
+  document.getElementById('st-xp').textContent=state.xp.toLocaleString();
+  document.getElementById('st-lessons').textContent=lessonsDone();
+  document.getElementById('st-acc').textContent=acc();
+  const A=[
+    {ic:'🌱',t:'Primer paso',d:'Completa 1 lección',on:lessonsDone()>=1},
+    {ic:'⚡',t:'Sin fallos',d:'Lección perfecta',on:state.perfectCount>=1},
+    {ic:'🔥',t:'En racha',d:'Racha de 3 días',on:state.streak>=3},
+    {ic:'🎓',t:'Unidad 1',d:'Termina la unidad',on:unitDone()},
+    {ic:'⭐',t:'Coleccionista',d:'Junta 200 XP',on:state.xp>=200},
+    {ic:'🎁',t:'Tesoro',d:'Abre la recompensa',on:!!(state.rewards&&state.rewards.u1)},
+  ];
+  document.getElementById('ach-grid').innerHTML=A.map(a=>`<div class="a ${a.on?'':'lock'}"><div class="b">${a.ic}</div><h5>${a.t}</h5><p>${a.d}</p></div>`).join('');
+}
+function renderPerfil(){
+  document.getElementById('pf-streak').textContent=state.streak;
+  document.getElementById('pf-xp').textContent=state.xp.toLocaleString();
+  document.getElementById('pf-lessons').textContent=lessonsDone();
+  document.getElementById('pf-acc').textContent=acc();
+}
+function resetProgress(){state=Object.assign({},DEFAULT,{done:{},rewards:{}});save();go('ruta');toast('Progreso reiniciado.');}
+
+/* ============ INICIO ============ */
+initRoad();renderRuta();refreshHeader();
+</script>
+</body>
+</html>
