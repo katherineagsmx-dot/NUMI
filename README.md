@@ -6,9 +6,8 @@ Proyecto desarrollado como parte del programa **Tecnolochicas**.
 
 ## 🚀 Demo en vivo
 
-👉 https://tu-usuario.github.io/numi/
+👉 https://katherineagsmx.github.io/numi/
 
-> Reemplaza `tu-usuario` por tu nombre de usuario de GitHub. El link se activa cuando habilitas GitHub Pages (Settings → Pages → Branch: `main`).
 
 ## ✨ Características
 
